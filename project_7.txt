@@ -1,0 +1,162 @@
+.data
+SeedPrompt:	.asciiz	"Enter the seed: "
+MultPrompt:	.asciiz "Enter the multiplier (over 10,000,000): "
+LowPrompt:	.asciiz "Enter a low limit: "
+HighPrompt:	.asciiz "Enter a high limit: "
+NumPrompt:	.asciiz "Numbers to generate: "
+NumGenerated:	.asciiz "Your random number is: "
+NumCount1:	.asciiz "--     Generating "
+NumCount2:	.asciiz " numbers    --"
+NewLine:	.asciiz "\n"
+
+Counter:	.float	0
+
+.text
+
+.globl main
+
+main:
+
+#load variables
+lw $t2, Counter
+
+#Prompt for seed
+la 	$a0, SeedPrompt
+li	$v0, 4
+syscall
+
+#Get seed
+li 	$v0, 5
+syscall
+
+#Put seed into t0
+move	$t0, $v0
+
+#Prompt for multipler
+la	$a0, MultPrompt
+li	$v0,4
+syscall
+
+#Get multipler
+li 	$v0, 5
+syscall
+
+#Put multiplyer into t1
+move	$t1, $v0
+
+#prompt for low
+la 	$a0, LowPrompt
+li	$v0, 4
+syscall
+
+#get low
+li 	$v0, 5
+syscall
+
+#put low into $t4
+move	$t4, $v0
+
+#prompt for high
+la 	$a0, HighPrompt
+li	$v0, 4
+syscall
+
+#get high
+li 	$v0, 5
+syscall
+
+#put high into $t5
+move	$t5, $v0
+
+#Prompt for nums to generate
+la 	$a0, NumPrompt
+li	$v0, 4
+syscall
+
+#get nums to gen
+li 	$v0, 5
+syscall
+
+#put nums to gen into t7
+move	$t7, $v0
+
+j	InfoDisplay
+
+while: #Begin gen loop
+
+#multiply seed and multipler
+multu	$t0,$t1
+
+#move from high to t3, HIGH IS OUR RANDOM
+mfhi	$t3
+
+#move from low to t0, LOW IS NEW SEED
+mflo	$t0
+
+#calculate range
+sub	$t6, $t5, $t4 	#t5(high) - t4(low) into t6
+add	$t6, $t6, 1 	#t6 + 1 into t6
+div	$t3, $t6	#t3(r) divided by t6
+mfhi	$t6		#move hi into t6
+add 	$t6,$t6,$t4	#t6 plus t4(low) into t6
+
+#Show random number prompt
+la 	$a0, NumGenerated
+li	$v0, 4
+syscall
+
+#show random number
+li    	$v0, 1
+    move    $a0, $t6
+    syscall
+
+    #print new line
+    la 	$a0, NewLine
+li	$v0, 4
+syscall
+
+#increase counter
+add	$t2,$t2,1
+
+#exit loop if above range
+beq 	$t2, $t7, end
+
+#continue the loop
+j	while
+
+
+InfoDisplay: # display for nums generated
+
+#print new line
+      la 	$a0, NewLine
+li	$v0, 4
+syscall
+
+#Display numbers generated info
+la 	$a0, NumCount1
+li	$v0, 4
+syscall
+
+li    	$v0, 1
+    move    $a0, $t7
+    syscall
+
+la 	$a0, NumCount2
+li	$v0, 4
+syscall
+
+    la 	$a0, NewLine
+li	$v0, 4
+syscall
+
+#print new line
+      la 	$a0, NewLine
+li	$v0, 4
+syscall
+
+#reloop
+j	while
+
+end: # Exit the program
+li 	$v0, 10
+syscall
